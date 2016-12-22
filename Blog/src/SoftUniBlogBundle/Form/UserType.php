@@ -31,4 +31,6 @@ class UserType extends AbstractType
             'data_class' => 'SoftUniBlogBundle\Entity\User',
         ));
     }
+
+
 }

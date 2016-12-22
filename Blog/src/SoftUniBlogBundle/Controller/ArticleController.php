@@ -40,7 +40,6 @@ class ArticleController extends Controller
 
         return $this->render('article/create.html.twig',
             array('form' => $form->createView()));
-
     }
 
     /**
@@ -63,17 +62,22 @@ class ArticleController extends Controller
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\Response
      */
-
     public function editArticle($id, Request $request)
     {
         $article = $this->getDoctrine()->getRepository(Article::class)->find($id);
 
-        if($article === null)
+        if($article === null){
+            return $this->redirectToRoute("blog_index");
+        }
+
+        $currentUser = $this->getUser();
+
+        if(!$currentUser->isAuthor($article) && !$currentUser->isAdmin())
         {
             return $this->redirectToRoute("blog_index");
         }
 
-        $form = $this-> createForm(ArticleType::class, $article);
+        $form = $this->createForm(ArticleType::class, $article);
 
         $form->handleRequest($request);
 
@@ -86,9 +90,9 @@ class ArticleController extends Controller
             return $this->redirectToRoute('article_view', array('id' => $article->getId()));
         }
 
-        return $this->render ('article/edit.html.twig',
+        return $this->render('article/edit.html.twig',
             array('article' => $article,
-                'form'=>$form->createView()));
+                'form' => $form->createView()));
     }
 
     /**
@@ -99,7 +103,7 @@ class ArticleController extends Controller
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public  function delete ($id, Request $request)
+    public function delete($id, Request $request)
     {
         $article = $this->getDoctrine()->getRepository(Article::class)->find($id);
 
@@ -107,11 +111,18 @@ class ArticleController extends Controller
             return $this->redirectToRoute("blog_index");
         }
 
+        $currentUser = $this->getUser();
+
+        if(!$currentUser->isAuthor($article) && !$currentUser->isAdmin())
+        {
+            return $this->redirectToRoute("blog_index");
+        }
+
         $form = $this->createForm(ArticleType::class, $article);
 
         $form->handleRequest($request);
 
-        if ($form->isSubmitted()&& $form->isValid())
+        if ($form->isSubmitted() && $form->isValid())
         {
             $em = $this->getDoctrine()->getManager();
             $em->remove($article);
@@ -120,8 +131,9 @@ class ArticleController extends Controller
             return $this->redirectToRoute('blog_index');
         }
 
-        return $this->render('article/delete.html.twig', array('article'=> $article, 'form' => $form->createView()));
+        return $this->render('article/delete.html.twig', array('article' => $article, 'form' => $form->createView()));
     }
-
-
 }
+
+
+
